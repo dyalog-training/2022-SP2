@@ -1,0 +1,82 @@
+version: '3.1'
+
+# Uncomment & edit the next line to reuse a loadbalancer, to get the same DNS name each time
+# x-aws-loadbalancer: "sp2-phonebook"
+
+services:
+
+  frontend:
+    image: $PHONEBOOK_IMAGE
+    volumes:
+      -  type: $PHONEBOOK_TYPE
+         source: $PHONEBOOK_DATA
+         target: /phonebook
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 1024M
+    ports:
+      - target: 8080
+        published: 8080
+        x-aws-protocol: http
+    environment:
+      - JarvisConfig=/app/frontend.json
+    
+  backend:
+    image: $PHONEBOOK_IMAGE
+    volumes:
+      -  type: $PHONEBOOK_TYPE
+         source: $PHONEBOOK_DATA
+         target: /phonebook
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 1024M
+    ports:
+      - target: 8081
+        published: 8081
+        x-aws-protocol: http
+      - target: 8088
+        published: 8088
+        x-aws-protocol: http
+    environment:
+      - JarvisConfig=/app/backend.json
+      - RIDE_INIT=http:*:8088
+      - DYALOG_JARVIS_THREAD=DEBUG
+      - DYALOG_JARVIS_PORT=8081
+
+# NB with HTTP RIDE exposed on 8088 for debugging,
+#    we must expose Jarvis on 8081 (8080 already exposed)
+#    and redirect HealthChecks to Jarvis, else they will fail
+#    See HealthCheck settings below
+    
+    x-aws-policies:
+      - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+
+volumes:
+# This will be created as an "Elastic File System"
+#    by default, only root has access, so we will impersonate user 0 when mounting
+  phonebook-data:
+    driver_opts:
+      uid: 0
+      gid: 0
+
+x-aws-cloudformation:
+  Resources:
+    Frontend8080TargetGroup:
+      Properties: 
+        TargetGroupAttributes:  
+          - Key: "stickiness.enabled"
+            Value: "true"
+          - Key: "stickiness.type"
+            Value: "lb_cookie"
+    Backend8088TargetGroup:
+    # Redirect health checks to Jarvis and reduce frequency to minimum
+      Properties:
+        HealthCheckPort: 8081
+        HealthCheckIntervalSeconds: 300
+        HealthyThresholdCount: 10
+    
