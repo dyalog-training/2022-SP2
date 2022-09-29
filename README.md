@@ -1,6 +1,6 @@
 # Dyalog'22 Workshop SP2 - Deploying Services
 
-This repository contains materials used in conjunction the workshop. In addition to the pre-requisites listed below, workshop participants will need to download the ZIP file included in the latest [release](https://github.com/dyalog-training/2022-SP2).
+This repository contains materials used in conjunction the workshop. In addition to the pre-requisites listed below, workshop participants will need to download the ZIP file included in the latest [release](https://github.com/dyalog-training/2022-SP2/releases).
 
 We hope to have everything in place at the beginning of the working week before by workshop, and will change this message when that is done. Presentation materials (PowerPoint, etc.) will be uploaded after the workshop.
 
