@@ -1,0 +1,53 @@
+version: '3.1'
+
+services:
+
+  frontend:
+    image: $PHONEBOOK_IMAGE
+    volumes:
+      -  type: $PHONEBOOK_TYPE
+         source: $PHONEBOOK_DATA
+         target: /phonebook
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 1024M
+    ports:
+      - target: 8080
+        published: 8080
+        x-aws-protocol: http
+    environment:
+      - JarvisConfig=/app/frontend.json
+    
+  backend:
+    image: $PHONEBOOK_IMAGE
+    volumes:
+      -  type: $PHONEBOOK_TYPE
+         source: $PHONEBOOK_DATA
+         target: /phonebook
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 1024M
+    environment:
+      - JarvisConfig=/app/backend.json
+      - DYALOG_JARVIS_PORT=8081
+
+volumes:
+  phonebook-data:
+    driver_opts:
+      uid: 0
+      gid: 0
+
+x-aws-cloudformation:
+  Resources:
+    Frontend8080TargetGroup:
+      Properties: 
+        TargetGroupAttributes:  
+          - Key: "stickiness.enabled"
+            Value: "true"
+          - Key: "stickiness.type"
+            Value: "lb_cookie"
