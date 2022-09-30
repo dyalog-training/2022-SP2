@@ -1,2 +1,3 @@
-r←front args
-r←'This is the frontend'
+r←front args;host
+host←2 ⎕NQ '.' 'GetEnvironment' 'HOSTNAME'
+r←'This is the frontend',(0≠≢host)/' - on ',host
