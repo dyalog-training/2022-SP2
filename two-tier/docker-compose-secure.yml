@@ -1,7 +1,7 @@
 version: '3.1'
 
 # Uncomment & edit the next line to reuse a loadbalancer, to get the same DNS name each time
-# x-aws-loadbalancer: "phonebook"
+x-aws-loadbalancer: "phonebook"
 
 services:
 
@@ -17,11 +17,12 @@ services:
           cpus: '0.25'
           memory: 1024M
     ports:
-      - target: 8080
-        published: 8080
-        x-aws-protocol: http
+      - target: 443
+        published: 443
+        x-aws-protocol: https
     environment:
       - JarvisConfig=/app/frontend.json
+      - DYALOG_JARVIS_PORT=8080
     
   backend:
     image: $PHONEBOOK_IMAGE
@@ -66,8 +67,13 @@ volumes:
 
 x-aws-cloudformation:
   Resources:
-    Frontend8080TargetGroup:
+    Frontend443Listener:
       Properties: 
+        Protocol: "HTTPS"
+        Certificates:          
+          - arn:aws:acm:eu-west-3:352645159704:certificate/04a17de2-9faa-4452-9d95-c0fe6b43b119
+    Frontend443TargetGroup:
+      Properties:
         TargetGroupAttributes:  
           - Key: "stickiness.enabled"
             Value: "true"
@@ -79,4 +85,20 @@ x-aws-cloudformation:
         HealthCheckPort: 8081
         HealthCheckIntervalSeconds: 300
         HealthyThresholdCount: 10
-    
+    Frontend443BaseRule:
+      Type: AWS::ElasticLoadBalancingV2::ListenerRule
+      Properties:
+        ListenerArn:
+          Ref: Frontend443Listener
+        Priority: 40000
+        Conditions:
+          - Field: host-header
+            HostHeaderConfig:
+              Values:
+                - phonebook.kromberg.dk
+        Actions:
+          - Type: forward
+            ForwardConfig:
+              TargetGroups:
+                - TargetGroupArn:
+                    Ref: Frontend443TargetGroup
