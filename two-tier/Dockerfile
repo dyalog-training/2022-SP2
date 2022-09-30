@@ -1,3 +1,3 @@
-FROM dyalog/jarvis:18.2
+FROM dyalog/jarvis:latest
 ADD ./app /app
 ADD ./HttpCommand.dyalog /opt/mdyalog/Jarvis/Source
