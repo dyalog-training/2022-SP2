@@ -1,4 +1,3 @@
-$ECHO ON
 SET PHONEBOOK_IMAGE=352645159704.dkr.ecr.eu-west-3.amazonaws.com/phonebook
 SET PHONEBOOK_TYPE=volume
 SET PHONEBOOK_DATA=phonebook-data

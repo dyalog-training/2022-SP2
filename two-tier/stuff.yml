@@ -1,0 +1,514 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  Backend8081Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: Backend8081TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 8081
+      Protocol: HTTP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  Backend8081TargetGroup:
+    Properties:
+      Port: 8081
+      Protocol: HTTP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+      TargetType: ip
+      VpcId: vpc-4b073d22
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  BackendService:
+    DependsOn:
+      - Backend8081Listener
+      - PhonebookdataNFSMountTargetOnSubnetcccceda5
+      - PhonebookdataNFSMountTargetOnSubnetcb6fe286
+      - PhonebookdataNFSMountTargetOnSubnetedfb8396
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: backend
+          ContainerPort: 8081
+          TargetGroupArn:
+            Ref: Backend8081TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-cccceda5
+            - subnet-cb6fe286
+            - subnet-edfb8396
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - BackendServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.service
+          Value: backend
+      TaskDefinition:
+        Ref: BackendTaskDefinition
+    Type: AWS::ECS::Service
+  BackendServiceDiscoveryEntry:
+    Properties:
+      Description: '"backend" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: backend
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  BackendTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - eu-west-3.compute.internal
+            - phonebook.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: phonebook
+          Name: Backend_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Backend_ResolvConf_InitContainer
+          Environment:
+            - Name: DYALOG_JARVIS_PORT
+              Value: "8081"
+            - Name: JarvisConfig
+              Value: /app/backend.json
+          Essential: true
+          Image: 352645159704.dkr.ecr.eu-west-3.amazonaws.com/phonebook:latest@sha256:027c297e50e7140ea3df6f128fdaedfe21207cd13afdcfb7ae33793aa5ba5d16
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: phonebook
+          MountPoints:
+            - ContainerPath: /phonebook
+              SourceVolume: phonebook-data
+          Name: backend
+          PortMappings:
+            - ContainerPort: 8081
+              HostPort: 8081
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: BackendTaskExecutionRole
+      Family: phonebook-backend
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: BackendTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: PhonebookdataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-0b2169c1df85a31cf
+            TransitEncryption: ENABLED
+          Name: phonebook-data
+    Type: AWS::ECS::TaskDefinition
+  BackendTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.service
+          Value: backend
+    Type: AWS::IAM::Role
+  BackendTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: PhonebookdataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:eu-west-3:352645159704:file-system/fs-0b2169c1df85a31cf
+            Version: 2012-10-17
+          PolicyName: BackendPhonebookdataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.service
+          Value: backend
+    Type: AWS::IAM::Role
+  CloudMap:
+    Properties:
+      Description: Service Map for Docker Compose project phonebook
+      Name: phonebook.local
+      Vpc: vpc-4b073d22
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+  Cluster:
+    Properties:
+      ClusterName: phonebook
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+    Type: AWS::ECS::Cluster
+  Default8080Ingress:
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: frontend:8080/ on default network
+      FromPort: 8080
+      GroupId:
+        Ref: DefaultNetwork
+      IpProtocol: "-1"
+      ToPort: 8080
+    Type: AWS::EC2::SecurityGroupIngress
+  Default8081Ingress:
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: backend:8081/ on default network
+      FromPort: 8081
+      GroupId:
+        Ref: DefaultNetwork
+      IpProtocol: "-1"
+      ToPort: 8081
+    Type: AWS::EC2::SecurityGroupIngress
+  DefaultNetwork:
+    Properties:
+      GroupDescription: phonebook Security Group for default network
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.network
+          Value: phonebook_default
+      VpcId: vpc-4b073d22
+    Type: AWS::EC2::SecurityGroup
+  DefaultNetworkIngress:
+    Properties:
+      Description: Allow communication within network default
+      GroupId:
+        Ref: DefaultNetwork
+      IpProtocol: "-1"
+      SourceSecurityGroupId:
+        Ref: DefaultNetwork
+    Type: AWS::EC2::SecurityGroupIngress
+  Frontend8080Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: Frontend8080TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 8080
+      Protocol: HTTP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  Frontend8080TargetGroup:
+    Properties:
+      Port: 8080
+      Protocol: HTTP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+      TargetType: ip
+      VpcId: vpc-4b073d22
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "true"
+        - Key: stickiness.type
+          Value: lb_cookie
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  FrontendService:
+    DependsOn:
+      - Frontend8080Listener
+      - PhonebookdataNFSMountTargetOnSubnetcccceda5
+      - PhonebookdataNFSMountTargetOnSubnetcb6fe286
+      - PhonebookdataNFSMountTargetOnSubnetedfb8396
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: frontend
+          ContainerPort: 8080
+          TargetGroupArn:
+            Ref: Frontend8080TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-cccceda5
+            - subnet-cb6fe286
+            - subnet-edfb8396
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - FrontendServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.service
+          Value: frontend
+      TaskDefinition:
+        Ref: FrontendTaskDefinition
+    Type: AWS::ECS::Service
+  FrontendServiceDiscoveryEntry:
+    Properties:
+      Description: '"frontend" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: frontend
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  FrontendTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - eu-west-3.compute.internal
+            - phonebook.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: phonebook
+          Name: Frontend_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Frontend_ResolvConf_InitContainer
+          Environment:
+            - Name: JarvisConfig
+              Value: /app/frontend.json
+          Essential: true
+          Image: 352645159704.dkr.ecr.eu-west-3.amazonaws.com/phonebook:latest@sha256:027c297e50e7140ea3df6f128fdaedfe21207cd13afdcfb7ae33793aa5ba5d16
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: phonebook
+          MountPoints:
+            - ContainerPath: /phonebook
+              SourceVolume: phonebook-data
+          Name: frontend
+          PortMappings:
+            - ContainerPort: 8080
+              HostPort: 8080
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: FrontendTaskExecutionRole
+      Family: phonebook-frontend
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: FrontendTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: PhonebookdataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-0b2169c1df85a31cf
+            TransitEncryption: ENABLED
+          Name: phonebook-data
+    Type: AWS::ECS::TaskDefinition
+  FrontendTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.service
+          Value: frontend
+    Type: AWS::IAM::Role
+  FrontendTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: PhonebookdataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:eu-west-3:352645159704:file-system/fs-0b2169c1df85a31cf
+            Version: 2012-10-17
+          PolicyName: FrontendPhonebookdataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.service
+          Value: frontend
+    Type: AWS::IAM::Role
+  LoadBalancer:
+    Properties:
+      Scheme: internet-facing
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      Subnets:
+        - subnet-cccceda5
+        - subnet-cb6fe286
+        - subnet-edfb8396
+      Tags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+      Type: application
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  LogGroup:
+    Properties:
+      LogGroupName: /docker-compose/phonebook
+    Type: AWS::Logs::LogGroup
+  PhonebookdataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: phonebook
+        - Key: com.docker.compose.volume
+          Value: phonebook-data
+        - Key: Name
+          Value: phonebook_phonebook-data
+      FileSystemId: fs-0b2169c1df85a31cf
+      PosixUser:
+        Gid: "0"
+        Uid: "0"
+    Type: AWS::EFS::AccessPoint
+  PhonebookdataNFSMountTargetOnSubnetcb6fe286:
+    Properties:
+      FileSystemId: fs-0b2169c1df85a31cf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-cb6fe286
+    Type: AWS::EFS::MountTarget
+  PhonebookdataNFSMountTargetOnSubnetcccceda5:
+    Properties:
+      FileSystemId: fs-0b2169c1df85a31cf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-cccceda5
+    Type: AWS::EFS::MountTarget
+  PhonebookdataNFSMountTargetOnSubnetedfb8396:
+    Properties:
+      FileSystemId: fs-0b2169c1df85a31cf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-edfb8396
+    Type: AWS::EFS::MountTarget

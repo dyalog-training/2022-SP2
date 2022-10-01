@@ -1,0 +1,24 @@
+version: '3.1'
+
+services:
+  frontend:
+    image: phonebook
+    volumes:
+      -  ./phonebook-data:/phonebook
+    ports:
+      - 8080:8080
+    environment:
+      - JarvisConfig=/app/frontend.json
+    
+  backend:
+    image: phonebook
+    restart: always
+    volumes:
+      -  ./phonebook-data:/phonebook
+    ports:
+      - 8088:8088
+    environment:
+      - JarvisConfig=/app/backend.json
+      - DYALOG_JARVIS_THREAD=DEBUG
+      - DYALOG_JARVIS_PORT=8081
+      - RIDE_INIT=HTTP:*:8088   

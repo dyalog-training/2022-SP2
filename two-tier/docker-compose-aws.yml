@@ -1,0 +1,45 @@
+version: '3.1'
+
+services:
+
+  frontend:
+    image: 352645159704.dkr.ecr.eu-west-3.amazonaws.com/phonebook
+    volumes:
+      -  phonebook-data:/phonebook
+    ports:
+      - target: 8080
+        published: 8080
+        x-aws-protocol: http
+    environment:
+      - JarvisConfig=/app/frontend.json
+    
+  backend:
+    image: 352645159704.dkr.ecr.eu-west-3.amazonaws.com/phonebook
+    volumes:
+      -  phonebook-data:/phonebook
+    restart: always
+    ports:
+      - target: 8081
+        published: 8081
+        x-aws-protocol: http
+    environment:
+      - JarvisConfig=/app/backend.json
+      - DYALOG_JARVIS_PORT=8081
+
+volumes:
+# This will be created as an "Elastic File System"
+#    by default, only root has access, so we will impersonate user 0 when mounting
+  phonebook-data:
+    driver_opts:
+      uid: 0
+      gid: 0
+
+x-aws-cloudformation:
+  Resources:
+    Frontend8080TargetGroup:
+      Properties: 
+        TargetGroupAttributes:  
+          - Key: "stickiness.enabled"
+            Value: "true"
+          - Key: "stickiness.type"
+            Value: "lb_cookie"    

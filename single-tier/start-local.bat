@@ -1,3 +1,5 @@
-@ECHO ON
 docker context use default
-docker run -p 8080:8080 -p 8088:8088 -e RIDE_INIT=HTTP:*:8088 -e DYALOG_JARVIS_THREAD=DEBUG -e JarvisConfig=phonebook.json phonebook
+SET DATA=phonebook-data:/phonebook
+SET RIDE=RIDE_INIT=HTTP:*:8088
+SET JT=DYALOG_JARVIS_THREAD=DEBUG
+docker run -v %DATA% -p 8080:8080 -p 8088:8088 -e %RIDE% -e %JT% phonebook
