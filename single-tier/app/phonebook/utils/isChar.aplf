@@ -1,0 +1,2 @@
+r←isChar a
+r←' '=⊃0⍴a

@@ -1,0 +1,2 @@
+ r←now
+ r←⊃'YYYY-mmm-DD @ hh:mm:ss'(1200⌶)¯1 1 ⎕DT⊂⎕TS

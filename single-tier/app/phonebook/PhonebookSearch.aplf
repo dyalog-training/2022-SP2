@@ -1,0 +1,30 @@
+ resp←req PhonebookSearch ns;field;mask;rc;msg;phonebook
+⍝ ns.([lastName] [firstName] [ext])
+⍝ [resp].(firstName ext lastName)
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"?ext' '"?firstName' '"?lastName').rc
+
+ resp←utils.initializeResponse
+
+ :If 0≠⊃(rc msg phonebook)←dbapi.readPhonebook
+     →end⊣resp.(rc msg)←rc msg
+ :EndIf
+
+ resp.(rc msg payload)←404 'no phonebook entries'(,⎕NS'')
+ →end↓⍨∨/mask←(≢phonebook)⍴1
+
+ :If ~req.isAdmin ⍝ custom setting set in utils.authenticate
+     phonebook.password←⊂'***'
+ :EndIf
+
+ resp.(rc msg)←404 'no matches'
+ :For field :In 'firstName' 'lastName' 'ext'∩ns.⎕NL ¯2
+     →end↓⍨∨/mask∧←(phonebook⍎¨⊆field)utils.match ns⍎field
+ :EndFor
+
+ resp.(msg payload)←((⍕+/mask),' found')(mask/phonebook)
+
+end:
+ :If 0≠resp.rc
+     req.Fail resp.rc
+ :EndIf

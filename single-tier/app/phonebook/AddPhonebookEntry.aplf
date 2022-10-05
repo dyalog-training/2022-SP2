@@ -1,0 +1,35 @@
+ resp←req AddPhonebookEntry ns;msg;rc;phonebook
+⍝ ns.(ext firstName lastName password)
+⍝ resp.(rc msg)
+⍝   rc - 0 success
+⍝        1 ext already exists
+⍝        2 database failure
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"ext' '"firstName' '"lastName' '"password').rc
+
+ resp←utils.initializeResponse
+
+ :Hold 'database'
+
+     :If 0≠⊃(rc msg phonebook)←dbapi.readPhonebook
+         →end⊣resp.(rc msg)←rc msg
+     :EndIf
+
+     :If 0<≢phonebook
+         :If 0≠phonebook.ext utils.indexOf ns.ext
+             →end⊣resp.(rc msg)←400('extension ',ns.ext,' already exists')
+         :EndIf
+     :EndIf
+
+     ns.updatedAt←utils.now
+     phonebook,←ns
+     →end⍴⍨0≠(resp←dbapi.writePhonebook phonebook).rc
+
+     resp.msg←'extension ',ns.ext,' added'
+
+ :EndHold
+
+end:
+ :If resp.rc≠0
+     req.Fail resp.rc
+ :EndIf

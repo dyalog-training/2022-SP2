@@ -1,0 +1,13 @@
+ resp←entry mergePhonebookEntry update;elements
+ ⍝ merge updated phonebook entry fields
+
+ resp←##.utils.initializeResponse
+
+ :If entry.ext≢update.ext
+     →0⊣resp.(rc msg)←400 'cannot update due to extension mismatch'
+ :EndIf
+
+ elements←entry∩⍥{⍵.⎕NL ¯2}update ⍝ element names to update
+ entry(elements{⍺⍎'(',(⍕⍺⍺),')←⍵⍎''',(⍕⍺⍺),''''})¨update ⍝ update them
+
+ resp.(rc msg payload)←0 ''entry

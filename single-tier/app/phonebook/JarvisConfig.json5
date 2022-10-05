@@ -1,0 +1,6 @@
+{
+    AppInitFn: "utils.initializeApplication",
+    AuthenticateFn: "utils.authenticate",
+    Port: 8802,    
+    IncludeFns: "^[A-Z].*",
+}

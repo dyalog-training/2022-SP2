@@ -1,0 +1,29 @@
+ resp←namespace checkPayload specs;spec;names;name;type;unexpected
+⍝ specs - vector of types,names
+⍝ types - " character, # numeric, ? optional
+⍝ e.g. - '"?password' means that password is optional and should be character if it exists
+⍝ intended to work with simple data only
+ specs←,⊆specs
+ resp←initializeResponse
+ resp.msg←''
+ names←namespace.⎕NL ¯2
+
+ :If 0<≢unexpected←names~specs~¨⊂'"#?'
+   resp.msg←∊', unexpected '∘,¨unexpected
+ :EndIf
+
+ :For spec :In specs
+     name←spec~'"#?'
+     :If (⊂name)∊names
+         type←1+2|⎕DR namespace⍎name
+         :If type≠⍸'"#'∊spec ⍝ type mismatch
+             resp.msg,←', ',name,' is the wrong type'
+         :EndIf
+     :ElseIf ~'?'∊spec
+         resp.msg,←', ',name,' is missing'
+     :EndIf
+ :EndFor
+ resp.msg↓⍨←2
+ :If 0≠resp.rc←400×0<≢resp.msg
+     resp.msg,⍨←'invalid payload: '
+ :EndIf

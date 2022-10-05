@@ -1,0 +1,6 @@
+ r←initializeResponse
+⍝ initialize the response namespace for all reqeusts
+⍝ every response will have a return code (rc) and a message (msg)
+⍝ individual endpoints can add elements as necessary
+ r←#.⎕NS''
+ r.(rc msg payload)←¯1 'bad request' ''
