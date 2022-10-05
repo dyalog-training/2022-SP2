@@ -1,7 +1,7 @@
  resp←req callBackEnd ns;r
 ⍝ sends a call to the backend endpoint
  :Trap 0
-     r←HttpCommand.GetJSON'post'(backEndAddress,'/req.Endpoint')ns
+     r←HttpCommand.GetJSON'post' ('backend:8081',req.Endpoint)ns
      :If r.rc=0
      :AndIf r.HttpStatus=200
          resp←r.Data
@@ -10,5 +10,5 @@
  :EndTrap
 ⍝ if we get here, there was either an error or the HttpCommand failed
  resp←initializeResponse
- resp.(rc msg)←500('back end call failed: ',⍕r)
+ resp.(rc msg)←500('back end call failed')
  req.Fail 500
