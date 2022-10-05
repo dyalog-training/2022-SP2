@@ -6,11 +6,15 @@
 
  'db'#.⎕NS''
 
- :If ~⎕NEXISTS ##.dbapi.phonebookFile←here.Folder,'phonebook.json'
+ :If ~⎕NEXISTS folder←'/phonebook' ⍝ In a container with a mounted volume?
+     folder←here.Folder            ⍝ Fall back to folder within code location
+ :EndIf
+
+ :If ~⎕NEXISTS ##.dbapi.phonebookFile←folder,'/phonebook.json'
      (⊂phonebookStart toJSON phonebookEnd)⎕NPUT ##.dbapi.phonebookFile
  :EndIf
 
- :If ~⎕NEXISTS ##.dbapi.usersFile←here.Folder,'users.json'
+ :If ~⎕NEXISTS ##.dbapi.usersFile←folder,'/users.json'
      (⊂usersStart toJSON usersEnd)⎕NPUT ##.dbapi.usersFile
  :EndIf
 
