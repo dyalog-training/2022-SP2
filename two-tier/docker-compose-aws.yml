@@ -18,10 +18,6 @@ services:
     volumes:
       -  phonebook-data:/phonebook
     restart: always
-    ports:
-      - target: 8081
-        published: 8081
-        x-aws-protocol: http
     environment:
       - JarvisConfig=/app/backend.json
       - DYALOG_JARVIS_PORT=8081

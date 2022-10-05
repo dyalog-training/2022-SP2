@@ -1,7 +1,7 @@
 version: '3.1'
 
 # Uncomment & edit the next line to reuse a loadbalancer, to get the same DNS name each time
-# x-aws-loadbalancer: "phonebook"
+x-aws-loadbalancer: "phonebook-dns"
 
 services:
 
@@ -36,9 +36,7 @@ services:
           cpus: '0.25'
           memory: 1024M
     ports:
-      - target: 8081
-        published: 8081
-        x-aws-protocol: http
+# Remove before production launch!
       - target: 8088
         published: 8088
         x-aws-protocol: http

@@ -1,7 +1,7 @@
  MakeLoadBalancer;folder;sg;file;r;ig;z;range;perm;subnets;cmd;gid;dns;name;getstderr;SH;PutJSON
 ⍝ Create a "Permanent" Load Balancer and Security Group suitable for fixed IP Phonebook
 
- folder←'C:\devt\2022-SP2\two-tier\cli-cmds\'
+ folder←'C:\devt\2022-SP2\two-tier\'
  getstderr←' 2>&1 || echo "PROBLEM:$?"'
 
  SH←{z←⎕CMD ⍵,getstderr
