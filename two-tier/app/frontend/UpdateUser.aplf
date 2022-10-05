@@ -1,0 +1,11 @@
+ resp←req UpdateUser ns;rc;msg;users;index
+ ⍝ ns.(login password)
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"login' '"password').rc
+
+ resp←req utils.callBackEnd ns
+
+end:
+ :If 0≠resp.rc
+     req.Fail resp.rc
+ :EndIf

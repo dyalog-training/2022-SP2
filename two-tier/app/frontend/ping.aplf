@@ -1,0 +1,2 @@
+r←ping args
+r←'/phonebook ',(4×~⎕NEXISTS '/phonebook')↓'not found'

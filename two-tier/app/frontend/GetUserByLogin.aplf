@@ -1,0 +1,29 @@
+ resp←req GetUserByLogin ns;rc;msg;users;index;login
+⍝ ns.(login)
+⍝ resp.(login password)
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"login').rc
+
+ resp←utils.initializeResponse
+
+ :If 0≠⊃(rc msg users)←dbapi.readUsers
+     →end⊣resp.(rc msg)←rc msg
+ :EndIf
+
+ login←⍕ns.login
+
+ resp.(rc msg)←404('user ',login,' not found')
+
+ →end⍴⍨0=≢users
+ →end⍴⍨0=index←users.login utils.indexOf⊆login
+
+ :If ~req.isAdmin ⍝ custom setting set in utils.authenticate
+     users.password←⊂'***'
+ :EndIf
+
+ resp.(rc msg payload)←0 ''(users[index])
+
+end:
+ :If 0≠resp.rc
+     req.Fail resp.rc
+ :EndIf

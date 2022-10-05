@@ -1,0 +1,58 @@
+ r←initializeBackEnd;here;toJSON;_
+⍝ "Open" (or initialize) the database
+ r←1
+ here←⊃⎕RSI
+ toJSON←{1 ⎕JSON⍠'Compact' 0⊢0 ⎕JSON⍠'Dialect' 'JSON5'⊢∊{⍵↓⍨+/∧\⍵∊'⍝ '}¨(1+⍺)↓⍵↑⎕NR 2⊃⎕SI}
+
+ 'db'#.⎕NS''
+
+ :If ~⎕NEXISTS ##.dbapi.phonebookFile←'/phonebook/phonebook.json'
+     (⊂phonebookStart toJSON phonebookEnd)⎕NPUT ##.dbapi.phonebookFile
+ :EndIf
+
+ :If ~⎕NEXISTS ##.dbapi.usersFile←'/phonebook/users.json'
+     (⊂usersStart toJSON usersEnd)⎕NPUT ##.dbapi.usersFile
+ :EndIf
+
+ :Trap 0
+     _←0 ⎕JSON⊃⎕NGET ##.dbapi.phonebookFile
+     _←0 ⎕JSON⊃⎕NGET ##.dbapi.usersFile
+ :Else
+     ⎕←'Database file(s) seem corrupted???'
+     →0⊣r←1
+ :EndTrap
+
+ →r←0 ⍝ success!
+
+phonebookStart:
+⍝  [
+⍝    {
+⍝    firstName: "Fred",
+⍝    lastName: "Flintstone",
+⍝    ext: "1234",
+⍝    password: "1234",
+⍝    updatedAt: "2022-sep-28 @ 22:53:45"
+⍝    },
+⍝    {
+⍝    firstName: "Barney",
+⍝    lastName: "Rubble",
+⍝    ext: "8904",
+⍝    password: "8904",
+⍝    updatedAt: "2022-sep-28 @ 22:52:31"
+⍝    }
+⍝  ]
+phonebookEnd:
+usersStart:
+⍝  [
+⍝    {
+⍝    login: "myuserid",
+⍝    password: "drowssap",
+⍝    updatedAt: "2022-sep-28 @ 22:52:11"
+⍝    },
+⍝    {
+⍝    login: "donald",
+⍝    password: "terces",
+⍝    updatedAt: "2022-sep-28 @ 22:51:19"
+⍝    },
+⍝  ]
+usersEnd:

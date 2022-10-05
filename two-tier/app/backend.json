@@ -1,3 +1,5 @@
 {
-  "CodeLocation": "/app/backend"
+  "CodeLocation": "./backend",
+  "AppInitFn": "utils.initializeBackEnd",
+  "IncludeFns": "^[A-Z].*"
 }

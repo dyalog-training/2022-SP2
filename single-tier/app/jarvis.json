@@ -1,5 +1,5 @@
 {
-  "CodeLocation": "/app/phonebook",
+  "CodeLocation": "./phonebook",
   "AppInitFn": "utils.initializeApplication",
   "AuthenticateFn": "utils.authenticate",
   "IncludeFns": "^[A-Z].*"

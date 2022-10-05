@@ -1,0 +1,15 @@
+ resp←req UpdatePhonebookEntry ns;rc;msg;phonebook;index
+ ⍝ ns.(ext [firstName] [lastName] [password])
+ ⍝ resp.(rc msg)
+ ⍝   rc - 0 success
+ ⍝        1 some error in request
+ ⍝        2 database failure
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"ext' '"?firstName' '"?lastName' '"?password').rc
+
+ resp←req utils.callBackEnd ns
+
+end:
+ :If 0≠resp.rc
+     req.Fail resp.rc
+ :EndIf

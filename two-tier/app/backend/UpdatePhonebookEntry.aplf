@@ -1,0 +1,32 @@
+ resp←req UpdatePhonebookEntry ns;rc;msg;phonebook;index
+ ⍝ ns.(ext [firstName] [lastName] [password])
+ ⍝ resp.(rc msg)
+ ⍝   rc - 0 success
+ ⍝        1 some error in request
+ ⍝        2 database failure
+
+ resp←utils.initializeResponse
+
+ :Hold 'database'
+
+     :If 0≠⊃(rc msg phonebook)←dbapi.readPhonebook
+         →end⊣resp.(rc msg)←rc msg
+     :EndIf
+
+     :If 0=index←phonebook.ext utils.indexOf ns.ext
+         →end⊣resp.(rc msg)←404('extension ',ns.ext,' does not exist')
+     :EndIf
+
+     ns.updatedAt←utils.now
+     →end⍴⍨0≠(resp←phonebook[index]dbapi.mergePhonebookEntry ns).rc
+     phonebook[index]←resp.payload
+     →end⍴⍨0≠(resp←dbapi.writePhonebook phonebook).rc
+
+     resp.msg←'extension ',ns.ext,' updated'
+
+ :EndHold
+
+end:
+ :If 0≠resp.rc
+     req.Fail resp.rc
+ :EndIf

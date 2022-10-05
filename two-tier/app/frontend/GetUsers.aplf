@@ -1,0 +1,20 @@
+ resp←req GetUsers dummy;rc;msg;users
+⍝ dummy isn't used
+⍝ [resp].(login password)
+
+ resp←utils.initializeResponse
+
+ :If 0≠⊃(rc msg users)←dbapi.readUsers
+     →end⊣resp.(rc msg)←rc msg
+ :EndIf
+
+ :If ~req.isAdmin ⍝ custom setting set in utils.authenticate
+     users.password←⊂'***'
+ :EndIf
+
+ resp.(rc msg payload)←0 ''users
+
+end:
+ :If 0≠resp.rc
+     req.Fail resp.rc
+ :EndIf

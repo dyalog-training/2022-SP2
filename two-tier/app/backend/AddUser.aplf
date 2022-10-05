@@ -1,0 +1,33 @@
+ resp←req AddUser ns;user;rc;msg;users
+ ⍝ ns.(login password)
+ ⍝ resp.(rc msg)
+ ⍝   rc -   0 success
+ ⍝        400 login already exists
+ ⍝        500 database failure
+
+ resp←utils.initializeResponse
+
+ :Hold 'database'
+
+     :If 0≠⊃(rc msg users)←dbapi.readUsers
+         →end⊣resp.(rc msg)←rc msg
+     :EndIf
+
+     :If 0≠users.login utils.indexOf⊆,ns.login
+         →fail⊣resp.(rc msg)←400('user ',ns.login,' already exists')
+     :EndIf
+
+     ns.password←utils.hashPassword ns.password
+     ns.updatedAt←utils.now
+     users,←ns
+     →end⍴⍨0≠(resp←dbapi.writeUsers users).rc
+
+     resp.(rc msg)←0('user ',ns.login,' added')
+
+ :EndHold
+ →0
+
+end:
+ :If 0≠resp.rc
+     req.Fail resp.rc
+ :EndIf

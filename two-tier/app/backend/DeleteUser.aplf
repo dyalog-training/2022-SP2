@@ -1,0 +1,35 @@
+ resp←req DeleteUser ns;rc;msg;users
+⍝ ns.(login)
+⍝ resp.(rc msg)
+⍝   rc - 0 okay,
+⍝        1 not found,
+⍝        2 cannot delete last
+⍝        3 database write error
+
+ resp←utils.initializeResponse
+
+ :Hold 'database'
+
+     :If 0≠⊃(rc msg users)←dbapi.readUsers
+         →end⊣resp.(rc msg)←rc msg
+     :EndIf
+
+     :If 0=users.login utils.indexOf ns.login
+         →end⊣resp.(rc msg)←404('user ',ns.login,' does not exist')
+     :EndIf
+
+     :If 1=≢users  ⍝ there must be at least one user left
+         →end⊣resp.(rc msg)←2 'cannot delete only remaining user'
+     :EndIf
+
+     users/⍨←users.login≢¨⊂ns.login
+     →end⍴⍨0≠(resp←dbapi.writeUsers users).rc
+
+     resp.msg←'user ',ns.login,' deleted'
+
+ :EndHold
+
+end:
+ :If resp.rc≠0
+     req.Fail resp.rc
+ :EndIf

@@ -1,0 +1,15 @@
+ resp←req AddPhonebookEntry ns;msg;rc;phonebook
+⍝ ns.(ext firstName lastName password)
+⍝ resp.(rc msg)
+⍝   rc - 0 success
+⍝        1 ext already exists
+⍝        2 database failure
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"ext' '"firstName' '"lastName' '"password').rc
+
+ resp←req utils.callBackEnd ns
+
+end:
+ :If resp.rc≠0
+     req.Fail resp.rc
+ :EndIf

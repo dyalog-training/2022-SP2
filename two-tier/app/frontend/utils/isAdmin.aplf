@@ -1,0 +1,9 @@
+ r←isAdmin ns;session
+ ⍝ short circuit for now
+ →0⊣r←1
+ r←0
+ :If 9.1=⎕NC⊂'ns' ⍝ namespace?
+ :AndIf 2.1=ns.⎕NC'token' ⍝ user token present
+ :AndIf ⎕NULL≢session←getSession ns.token
+     r←'Admin'≡session.Role
+ :EndIf

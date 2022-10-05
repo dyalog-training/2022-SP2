@@ -1,3 +1,6 @@
 {
-  "CodeLocation": "/app/frontend"
+  "CodeLocation": "./frontend",
+  "AppInitFn": "utils.initializeFrontEnd",
+  "AuthenticateFn": "utils.authenticate",
+  "IncludeFns": "^[A-Z].*"
 }

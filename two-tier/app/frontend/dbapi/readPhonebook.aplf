@@ -1,0 +1,8 @@
+ (rc msg payload)←readPhonebook
+ payload←''
+ :Trap 0
+     payload←0 ⎕JSON⊃⎕NGET phonebookFile
+     (rc msg)←0 ''
+ :Else
+     (rc msg)←500('Error reading phonebook: ',⍕⎕DMX.EM)
+ :EndTrap

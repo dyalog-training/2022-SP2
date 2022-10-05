@@ -1,0 +1,6 @@
+ r←initializeFrontEnd
+⍝ "Open" (or initialize) the database
+ r←1
+ ##.dbapi.phonebookFile←'/phonebook/phonebook.json'
+ ##.dbapi.usersFile←'/phonebook/users.json'
+ →r←0 ⍝ success!

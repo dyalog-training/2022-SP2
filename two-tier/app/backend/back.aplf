@@ -1,3 +1,0 @@
-r←back args;host
-host←2 ⎕NQ '.' 'GetEnvironment' 'HOSTNAME'
-r←'This is the backend',(0≠≢host)/' - on ',host

@@ -1,0 +1,31 @@
+ resp←req GetPhonebookByExtension ns;ext
+ ⍝ ns.(ext)
+ ⍝ resp.(rc msg)
+ ⍝   rc - 0 success
+ ⍝        1 some error in request
+ ⍝        2 database failure
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"ext').rc
+
+ resp←utils.initializeResponse
+
+ :If 0≠⊃(rc msg phonebook)←dbapi.readPhonebook
+     →end⊣resp.(rc msg)←rc msg
+ :EndIf
+
+ ext←⍕ns.ext
+ resp.(rc msg)←404('extension ',ext,' does not exist')
+
+ →end⍴⍨0=≢phonebook
+ →end⍴⍨0=index←phonebook.ext utils.indexOf⊆ext
+
+ :If ~req.isAdmin ⍝ custom setting set in utils.authenticate
+     phonebook.password←⊂'***'
+ :EndIf
+
+ resp.(rc msg payload)←0 ''(phonebook[index])
+
+end:
+ :If resp.rc≠0
+     req.Fail resp.rc
+ :EndIf

@@ -1,0 +1,8 @@
+ (rc msg payload)←readUsers
+ payload←''
+ :Trap 0
+     payload←0 ⎕JSON⊃⎕NGET usersFile
+     (rc msg)←0 ''
+ :Else
+     (rc msg)←500('Error reading users: ',⍕⎕DMX.EM)
+ :EndTrap

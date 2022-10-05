@@ -1,0 +1,30 @@
+ resp←req DeletePhonebookEntry ns;rc;msg;phonebook
+⍝ ns.(ext)
+⍝ resp.(rc msg)
+⍝   rc - 0 okay,
+⍝        1 extension not found
+⍝        2 database write error
+
+ resp←utils.initializeResponse
+
+ :Hold 'database'
+
+     :If 0≠⊃(rc msg phonebook)←dbapi.readPhonebook
+         →end⊣resp.(rc msg)←rc msg
+     :EndIf
+
+     :If 0=phonebook.ext utils.indexOf ns.ext
+         →end⊣resp.(rc msg)←404('extension ',ns.ext,' does not exist')
+     :EndIf
+
+     phonebook/⍨←phonebook.ext≢¨⊂ns.ext
+     →end⍴⍨0≠(resp←dbapi.writePhonebook phonebook).rc
+
+     resp.msg←'extension ',ns.ext,' deleted'
+
+ :EndHold
+
+end:
+ :If resp.rc≠0
+     req.Fail resp.rc
+ :EndIf

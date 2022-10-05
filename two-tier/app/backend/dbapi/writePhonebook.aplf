@@ -1,0 +1,9 @@
+ resp←writePhonebook phonebook
+⍝ Note :Hold 'database' is expected in calling environment
+ resp←##.utils.initializeResponse
+ :Trap 0
+     (⊂1 ⎕JSON⍠'Compact' 0⊢phonebook)⎕NPUT phonebookFile 1
+     resp.(rc msg)←0 ''
+ :Else
+     resp.(rc msg)←500('Error writing phonebookFile: ',⎕DMX.EM)
+ :EndTrap

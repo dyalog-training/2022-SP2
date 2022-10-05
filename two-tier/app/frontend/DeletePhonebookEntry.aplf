@@ -1,0 +1,15 @@
+ resp←req DeletePhonebookEntry ns;rc;msg;phonebook
+⍝ ns.(ext)
+⍝ resp.(rc msg)
+⍝   rc - 0 okay,
+⍝        1 extension not found
+⍝        2 database write error
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"ext').rc
+
+ resp←req utils.callBackEnd ns
+
+end:
+ :If resp.rc≠0
+     req.Fail resp.rc
+ :EndIf

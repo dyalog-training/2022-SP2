@@ -1,0 +1,16 @@
+ resp←req DeleteUser ns;rc;msg;users
+⍝ ns.(login)
+⍝ resp.(rc msg)
+⍝   rc - 0 okay,
+⍝        1 not found,
+⍝        2 cannot delete last
+⍝        3 database write error
+
+ →end⍴⍨0≠(resp←ns utils.checkPayload'"login').rc
+
+ resp←req utils.callBackEnd ns
+
+end:
+ :If resp.rc≠0
+     req.Fail resp.rc
+ :EndIf

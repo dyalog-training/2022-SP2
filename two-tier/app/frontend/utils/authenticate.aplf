@@ -1,0 +1,38 @@
+ r←authenticate req;isAdmin;credentials;isOwner;rc;msg;users;phonebook;fn;phoneFns;adminFns
+ ⍝ req is the HTTP request object
+ ⍝ r is 0 for "okay" (either authenticated or no authentication necessary), 1 otherwise
+
+ r←1
+
+ isAdmin←isOwner←0
+
+ ⍝ functions that require admin access
+ adminFns←'AddPhonebookEntry' 'AddUser' 'DeletePhonebookEntry' 'DeleteUser' 'UpdateUser'
+
+ ⍝ functions that require owner or admin access
+ phoneFns←,⊆'UpdatePhonebookEntry'
+
+ fn←⊃'/'(≠⊆⊢)req.Endpoint ⍝ requested function
+
+ :If req.UserID≢''
+     credentials←⊂req.UserID(hashPassword req.Password)
+     :If 0≠⊃(rc msg users)←##.dbapi.readUsers
+         'user table read error'⎕SIGNAL 666
+     :EndIf
+     :If ~isAdmin←0≠users.(login password)indexOf credentials
+         :If 0≠⊃(rc msg phonebook)←##.dbapi.readPhonebook
+             'phonebook read error'⎕SIGNAL 666
+         :EndIf
+         isOwner←0≠phonebook.(ext password)indexOf credentials
+     :EndIf
+ :EndIf
+
+ :Select fn
+ :CaseList adminFns
+     r←~isAdmin
+ :CaseList phoneFns
+     r←~isAdmin∨isOwner
+ :Else
+     r←0
+ :EndSelect
+ req.isAdmin←isAdmin
