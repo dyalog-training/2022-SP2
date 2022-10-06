@@ -2,7 +2,7 @@
 
 This repository contains materials used in conjunction the workshop. In addition to the pre-requisites listed below, workshop participants will need to download the ZIP file included in the latest [release](https://github.com/dyalog-training/2022-SP2/releases).
 
-We hope to have everything in place at the beginning of the working week before by workshop, and will change this message when that is done. Presentation materials (PowerPoint, etc.) will be uploaded after the workshop.
+Presentation materials (PowerPoint, etc.) will be uploaded after the workshop.
 
 ## Pre-requisites
 
@@ -20,7 +20,6 @@ Required:
 
 ### Recommended:
 
-- Jarvis. Downloadable from [here](https://github.com/Dyalog/Jarvis/releases/download/v.1.11.8/Jarvis.dyalog). 
 - One of the following:
   - The ability to download and install a sample application from GitHub – this will be downloadable before the end of September, but there could be minor updates after this
   - The ability to copy and install a sample application from a USB thumb drive on the day of the workshop
