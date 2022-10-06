@@ -20,7 +20,7 @@ Required:
 
 ### Recommended:
 
-- Jarvis. A download link and instructions on how to configure and test your Jarvis installation will be downloadable from this page before the end of September
+- Jarvis. Downloadable from [here](https://github.com/Dyalog/Jarvis/releases/download/v.1.11.8/Jarvis.dyalog). 
 - One of the following:
   - The ability to download and install a sample application from GitHub – this will be downloadable before the end of September, but there could be minor updates after this
   - The ability to copy and install a sample application from a USB thumb drive on the day of the workshop
