@@ -3,3 +3,5 @@ single-tier/phonebook-data/phonebook.json
 single-tier/phonebook-data/users.json
 two-tier/phonebook-data/phonebook.json
 two-tier/phonebook-data/users.json
+single-tier/app/phonebook/phonebook.json
+single-tier/app/phonebook/users.json
