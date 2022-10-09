@@ -6,10 +6,14 @@
  specs←,⊆specs
  resp←initializeResponse
  resp.msg←''
+ :If {9.1≠⎕NC⊂,'⍵'}namespace ⍝ is it a namespace?
+     →0⊣resp.(rc msg)←400 'invalid payload: not a namespace'
+ :EndIf
+
  names←namespace.⎕NL ¯2
 
  :If 0<≢unexpected←names~specs~¨⊂'"#?'
-   resp.msg←∊', unexpected '∘,¨unexpected
+     resp.msg←∊', unexpected '∘,¨unexpected
  :EndIf
 
  :For spec :In specs
