@@ -2,7 +2,7 @@
 
 This repository contains materials used in conjunction the workshop. In addition to the pre-requisites listed below, workshop participants will need to download the ZIP file included in the latest [release](https://github.com/dyalog-training/2022-SP2/releases).
 
-Presentation materials (PowerPoint, etc.) will be uploaded after the workshop.
+The v1.1 release contains the powerpoint slides as presented at Dyalog'22.
 
 ## Pre-requisites
 
