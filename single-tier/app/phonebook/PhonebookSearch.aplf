@@ -22,7 +22,7 @@
      →end↓⍨∨/mask∧←(phonebook⍎¨⊆field)utils.match ns⍎field
  :EndFor
 
- resp.(msg payload)←((⍕+/mask),' found')(mask/phonebook)
+ resp.(rc msg payload)←0 ((⍕+/mask),' found')(mask/phonebook)
 
 end:
  :If 0≠resp.rc
